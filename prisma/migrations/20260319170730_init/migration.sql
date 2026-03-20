@@ -1,17 +1,15 @@
 -- CreateEnum
-CREATE TYPE "AccountType" AS ENUM ('CASH', 'CHECKING', 'SAVINGS', 'CREDIT', 'INVESTMENT');
-
--- CreateEnum
 CREATE TYPE "CategoryKind" AS ENUM ('EXPENSE', 'INCOME');
-
--- CreateEnum
-CREATE TYPE "TransactionType" AS ENUM ('EXPENSE', 'INCOME', 'TRANSFER');
 
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
     "email" TEXT NOT NULL,
+    "emailVerified" TIMESTAMP(3),
     "name" TEXT,
+    "image" TEXT,
+    "password" TEXT,
+    "locale" CHAR(2) NOT NULL DEFAULT 'en',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -22,15 +20,35 @@ CREATE TABLE "User" (
 CREATE TABLE "Account" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
-    "name" TEXT NOT NULL,
-    "type" "AccountType" NOT NULL,
-    "currency" CHAR(3) NOT NULL,
-    "openingBalanceCents" BIGINT NOT NULL DEFAULT 0,
-    "archived" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "type" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "providerAccountId" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "access_token" TEXT,
+    "expires_at" INTEGER,
+    "token_type" TEXT,
+    "scope" TEXT,
+    "id_token" TEXT,
+    "session_state" TEXT,
 
     CONSTRAINT "Account_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Session" (
+    "id" UUID NOT NULL,
+    "sessionToken" TEXT NOT NULL,
+    "userId" UUID NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "VerificationToken" (
+    "identifier" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMP(3) NOT NULL
 );
 
 -- CreateTable
@@ -51,16 +69,13 @@ CREATE TABLE "Category" (
 CREATE TABLE "Transaction" (
     "id" UUID NOT NULL,
     "userId" UUID NOT NULL,
-    "accountId" UUID NOT NULL,
     "categoryId" UUID,
-    "type" "TransactionType" NOT NULL,
     "amountCents" BIGINT NOT NULL,
     "currency" CHAR(3) NOT NULL,
     "occurredAt" TIMESTAMPTZ(6) NOT NULL,
     "description" TEXT NOT NULL DEFAULT '',
     "merchant" TEXT,
     "notes" TEXT,
-    "transferId" UUID,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -85,10 +100,16 @@ CREATE TABLE "Budget" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE INDEX "Account_userId_archived_idx" ON "Account"("userId", "archived");
+CREATE UNIQUE INDEX "Account_provider_providerAccountId_key" ON "Account"("provider", "providerAccountId");
 
 -- CreateIndex
-CREATE INDEX "Account_userId_type_idx" ON "Account"("userId", "type");
+CREATE UNIQUE INDEX "Session_sessionToken_key" ON "Session"("sessionToken");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VerificationToken_token_key" ON "VerificationToken"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationToken"("identifier", "token");
 
 -- CreateIndex
 CREATE INDEX "Category_userId_kind_idx" ON "Category"("userId", "kind");
@@ -103,13 +124,7 @@ CREATE UNIQUE INDEX "Category_userId_kind_name_key" ON "Category"("userId", "kin
 CREATE INDEX "Transaction_userId_occurredAt_idx" ON "Transaction"("userId", "occurredAt" DESC);
 
 -- CreateIndex
-CREATE INDEX "Transaction_accountId_occurredAt_idx" ON "Transaction"("accountId", "occurredAt" DESC);
-
--- CreateIndex
 CREATE INDEX "Transaction_categoryId_occurredAt_idx" ON "Transaction"("categoryId", "occurredAt" DESC);
-
--- CreateIndex
-CREATE INDEX "Transaction_userId_transferId_idx" ON "Transaction"("userId", "transferId");
 
 -- CreateIndex
 CREATE INDEX "Budget_userId_month_idx" ON "Budget"("userId", "month");
@@ -121,6 +136,9 @@ CREATE UNIQUE INDEX "Budget_userId_categoryId_month_key" ON "Budget"("userId", "
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Category" ADD CONSTRAINT "Category_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -128,9 +146,6 @@ ALTER TABLE "Category" ADD CONSTRAINT "Category_parentId_fkey" FOREIGN KEY ("par
 
 -- AddForeignKey
 ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Transaction" ADD CONSTRAINT "Transaction_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;

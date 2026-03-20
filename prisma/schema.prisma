@@ -10,23 +10,9 @@ datasource db {
 
 // ─── Enums ──────────────────────────────────────────────
 
-enum FinancialAccountType {
-  CASH
-  CHECKING
-  SAVINGS
-  CREDIT
-  INVESTMENT
-}
-
 enum CategoryKind {
   EXPENSE
   INCOME
-}
-
-enum TransactionType {
-  EXPENSE
-  INCOME
-  TRANSFER
 }
 
 // ─── Auth.js models ─────────────────────────────────────
@@ -44,7 +30,6 @@ model User {
 
   accounts          Account[]
   sessions          Session[]
-  financialAccounts FinancialAccount[]
   categories        Category[]
   transactions      Transaction[]
   budgets           Budget[]
@@ -88,24 +73,6 @@ model VerificationToken {
 
 // ─── Financial models ───────────────────────────────────
 
-model FinancialAccount {
-  id                  String               @id @default(uuid()) @db.Uuid
-  userId              String               @db.Uuid
-  name                String
-  type                FinancialAccountType
-  currency            String               @db.Char(3)
-  openingBalanceCents BigInt               @default(0)
-  archived            Boolean              @default(false)
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions Transaction[]
-
-  @@index([userId, archived])
-  @@index([userId, type])
-}
-
 model Category {
   id        String       @id @default(uuid()) @db.Uuid
   userId    String?      @db.Uuid
@@ -128,30 +95,24 @@ model Category {
 }
 
 model Transaction {
-  id          String          @id @default(uuid()) @db.Uuid
-  userId      String          @db.Uuid
-  accountId   String          @db.Uuid
-  categoryId  String?         @db.Uuid
-  type        TransactionType
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  categoryId  String?  @db.Uuid
   amountCents BigInt
-  currency    String          @db.Char(3)
-  occurredAt  DateTime        @db.Timestamptz(6)
-  description String          @default("")
+  currency    String   @db.Char(3)
+  occurredAt  DateTime @db.Timestamptz(6)
+  description String   @default("")
   merchant    String?
   notes       String?
-  transferId  String?         @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  FinancialAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  category Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([userId, occurredAt(sort: Desc)])
-  @@index([accountId, occurredAt(sort: Desc)])
   @@index([categoryId, occurredAt(sort: Desc)])
-  @@index([userId, transferId])
 }
 
 model Budget {
