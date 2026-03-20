@@ -35,6 +35,29 @@
       "generic": "Something went wrong. Please try again."
     }
   },
+  "categories": {
+    "title": "Categories",
+    "empty": "No categories yet. Create your first one!",
+    "name": "Category name",
+    "create": "Create category",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Are you sure you want to delete this category?",
+    "errors": {
+      "nameRequired": "Name is required",
+      "alreadyExists": "Category already exists",
+      "notFound": "Category not found",
+      "generic": "Something went wrong. Please try again."
+    }
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Please try again.",
+    "retry": "Try again",
+    "home": "Go home"
+  },
   "languages": {
     "en": "English",
     "es": "Spanish"

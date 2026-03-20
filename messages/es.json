@@ -35,6 +35,29 @@
       "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
     }
   },
+  "categories": {
+    "title": "Categorías",
+    "empty": "No hay categorías. ¡Crea la primera!",
+    "name": "Nombre de categoría",
+    "create": "Crear categoría",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirmDelete": "¿Estás seguro de que deseas eliminar esta categoría?",
+    "errors": {
+      "nameRequired": "El nombre es obligatorio",
+      "alreadyExists": "La categoría ya existe",
+      "notFound": "Categoría no encontrada",
+      "generic": "Algo salió mal. Por favor, inténtalo de nuevo."
+    }
+  },
+  "error": {
+    "title": "Algo salió mal",
+    "description": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "home": "Ir al inicio"
+  },
   "languages": {
     "en": "Inglés",
     "es": "Español"
