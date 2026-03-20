@@ -57,6 +57,15 @@ describe("createCategory", () => {
     expect(result).toEqual({ error: "Category already exists" });
   });
 
+  it("returns generic error when prisma throws", async () => {
+    mockAuth.mockResolvedValue(session);
+    mockFindFirst.mockResolvedValue(null);
+    mockCreate.mockRejectedValue(new Error("FK constraint"));
+
+    const result = await createCategory(formData({ name: "Food" }));
+    expect(result).toEqual({ error: "Something went wrong. Please try again." });
+  });
+
   it("creates a category successfully", async () => {
     mockAuth.mockResolvedValue(session);
     mockFindFirst.mockResolvedValue(null);
@@ -94,6 +103,17 @@ describe("updateCategory", () => {
 
     const result = await updateCategory("cat-1", formData({ name: "Groceries" }));
     expect(result).toEqual({ error: "Category already exists" });
+  });
+
+  it("returns generic error when prisma throws", async () => {
+    mockAuth.mockResolvedValue(session);
+    mockFindFirst
+      .mockResolvedValueOnce({ id: "cat-1", name: "Food" })
+      .mockResolvedValueOnce(null);
+    mockUpdate.mockRejectedValue(new Error("DB error"));
+
+    const result = await updateCategory("cat-1", formData({ name: "Groceries" }));
+    expect(result).toEqual({ error: "Something went wrong. Please try again." });
   });
 
   it("updates a category successfully", async () => {
@@ -134,5 +154,14 @@ describe("deleteCategory", () => {
 
     const result = await deleteCategory("cat-1");
     expect(result).toEqual({ error: "Category not found" });
+  });
+
+  it("returns generic error when prisma throws", async () => {
+    mockAuth.mockResolvedValue(session);
+    mockFindFirst.mockResolvedValue({ id: "cat-1", name: "Food" });
+    mockUpdate.mockRejectedValue(new Error("DB error"));
+
+    const result = await deleteCategory("cat-1");
+    expect(result).toEqual({ error: "Something went wrong. Please try again." });
   });
 });
